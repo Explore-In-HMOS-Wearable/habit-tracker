@@ -87,8 +87,8 @@ class PeriodStore {
   ];
 
   updatePeriod(index: number, updated: Period): void {
-    console.log('index', index);
-    console.log('updated', JSON.stringify(updated));
+    console.info('index', index);
+    console.info('updated', JSON.stringify(updated));
     this.periods[index] = updated;
   }
 
@@ -98,4 +98,5 @@ class PeriodStore {
 }
 
 const periodStore = new PeriodStore();
+
 export default periodStore;
