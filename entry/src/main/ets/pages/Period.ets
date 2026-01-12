@@ -1,5 +1,5 @@
 import { PeriodService } from '../core/services/PeriodService';
-import { display, router } from '@kit.ArkUI';
+import display from '@ohos.display';
 
 interface RitualDisplay {
   id: number;
@@ -8,27 +8,19 @@ interface RitualDisplay {
   color: string;
 }
 
-@Entry
 @Component
-struct Period {
+export struct Period {
+  @Consume('pageStack') pageStack: NavPathStack;
   private controller = PeriodService.instance;
   @State periodId: number = -1;
   @State currentRitual: RitualDisplay | null = null;
   @State showCompletionMessage: boolean = false;
-  @State screenWidth: number = 0;
-  @State screenHeight: number = 0;
+  private screenWidth: number = 0;
+  private screenHeight: number = 0;
 
   async aboutToAppear(): Promise<void> {
-    const periodId = this.getUIContext().getRouter().getParams() as number;
-    if (isNaN(periodId)) {
-      console.error('Invalid period ID');
-      this.getUIContext().getRouter().back();
-      return;
-    }
-    this.periodId = periodId;
-    this.loadNextRitual();
     try {
-      const defaultDisplay = await display.getDefaultDisplay();
+      const defaultDisplay = await display.getDefaultDisplaySync();
       this.screenWidth = defaultDisplay.width;
       this.screenHeight = defaultDisplay.height;
     } catch (err) {
@@ -40,7 +32,7 @@ struct Period {
     const period = this.controller.getPeriodById(this.periodId);
     if (!period) {
       console.error('Period not found');
-      router.back();
+      this.pageStack.pop()
       return;
     }
     const nextRitual = period.rituals.find(r => !r.completed);
@@ -107,67 +99,80 @@ struct Period {
     .width('100%')
     .height(this.buttonHeight())
     .backgroundColor('#6c757d')
-    .onClick(() => router.back());
+    .onClick(() => this.pageStack.pop());
   }
 
   build() {
-    Column() {
+    NavDestination() {
       Column() {
-        if (this.showCompletionMessage) {
-          Text('All rituals completed! 🎉')
-            .fontSize(this.fontLarge())
-            .fontColor('#28a745')
-            .margin({ bottom: 20 });
-        } else if (this.currentRitual) {
-          Column() {
-            Text(this.currentRitual.title)
+        Column() {
+          if (this.showCompletionMessage) {
+            Text('All rituals completed! 🎉')
               .fontSize(this.fontLarge())
-              .fontWeight(FontWeight.Bold)
-              .fontColor(this.currentRitual.color);
-            Text(`Duration: ${this.currentRitual.time}`)
-              .fontSize(this.fontSmall())
-              .margin({ top: 10 })
-              .fontColor('black');
+              .fontColor('#28a745')
+              .margin({ bottom: 20 });
+          } else if (this.currentRitual) {
+            Column() {
+              Text(this.currentRitual.title)
+                .fontSize(this.fontLarge())
+                .fontWeight(FontWeight.Bold)
+                .fontColor(this.currentRitual.color);
+              Text(`Duration: ${this.currentRitual.time}`)
+                .fontSize(this.fontSmall())
+                .margin({ top: 10 })
+                .fontColor('black');
+            }
+            .justifyContent(FlexAlign.Center)
+            .alignItems(HorizontalAlign.Center)
+            .margin({ bottom: 20 });
+          } else {
+            Text('Loading...')
+              .fontSize(this.fontMedium())
+              .fontColor('#999');
           }
-          .justifyContent(FlexAlign.Center)
-          .alignItems(HorizontalAlign.Center)
-          .margin({ bottom: 20 });
-        } else {
-          Text('Loading...')
-            .fontSize(this.fontMedium())
-            .fontColor('#999');
         }
+        .width('100%')
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center);
+
+        Row() {
+          Column() {
+            this.renderBackButton();
+          }
+          .width(this.currentRitual && !this.showCompletionMessage ? '48%' : '100%');
+
+          if (this.currentRitual && !this.showCompletionMessage) {
+            Column() {
+              this.renderCompletionButton();
+            }
+            .width('48%');
+          }
+        }
+        .width('100%')
+        .justifyContent(FlexAlign.SpaceBetween);
       }
       .width('100%')
+      .height('100%')
+      .padding({
+        top: 10,
+        bottom: 0,
+        left: 20,
+        right: 20
+      })
+      .backgroundColor('#FFF')
       .justifyContent(FlexAlign.Center)
       .alignItems(HorizontalAlign.Center);
-
-      Row() {
-        Column() {
-          this.renderBackButton();
-        }
-        .width(this.currentRitual && !this.showCompletionMessage ? '48%' : '100%');
-
-        if (this.currentRitual && !this.showCompletionMessage) {
-          Column() {
-            this.renderCompletionButton();
-          }
-          .width('48%');
-        }
+    }.onReady((ctx: NavDestinationContext) => {
+      this.pageStack = ctx.pathStack;
+      const periodId = ctx.pathInfo.param as number;
+      if (isNaN(periodId)) {
+        console.error('Invalid period ID');
+        this.pageStack.pop()
+        return;
       }
-      .width('100%')
-      .justifyContent(FlexAlign.SpaceBetween);
-    }
-    .width('100%')
-    .height('100%')
-    .padding({
-      top: 10,
-      bottom: 0,
-      left: 20,
-      right: 20
+      this.periodId = periodId;
+      this.loadNextRitual();
     })
-    .backgroundColor('#FFF')
-    .justifyContent(FlexAlign.Center)
-    .alignItems(HorizontalAlign.Center);
+    .hideBackButton(true)
   }
 }

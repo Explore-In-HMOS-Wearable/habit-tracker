@@ -29,16 +29,16 @@ class PeriodStore {
           title: 'Drink water',
           time: '00:15',
           color: '#4ea5d7',
-          completed: false,
+          completed: false
         },
         {
           id: 2,
           title: 'Stretching',
           time: '00:10',
           color: '#4ea5d7',
-          completed: false,
-        },
-      ],
+          completed: false
+        }
+      ]
     },
     {
       title: 'Afternoon Ritual',
@@ -51,16 +51,16 @@ class PeriodStore {
           title: 'Short walk',
           time: '00:20',
           color: '#c8b049',
-          completed: false,
+          completed: false
         },
         {
           id: 4,
           title: 'Healthy lunch',
           time: '00:30',
           color: '#c8b049',
-          completed: false,
-        },
-      ],
+          completed: false
+        }
+      ]
     },
     {
       title: 'Evening Ritual',
@@ -73,17 +73,17 @@ class PeriodStore {
           title: 'Read a book',
           time: '00:20',
           color: '#1a365c',
-          completed: false,
+          completed: false
         },
         {
           id: 6,
           title: 'Meditate',
           time: '00:10',
           color: '#1a365c',
-          completed: false,
-        },
-      ],
-    },
+          completed: false
+        }
+      ]
+    }
   ];
 
   updatePeriod(index: number, updated: Period): void {

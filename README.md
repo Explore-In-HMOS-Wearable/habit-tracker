@@ -45,7 +45,6 @@ tracker app with basic navigation and state management.
 │       │   │   │   │   └── RitualModel.ets
 │       │   │   │   ├── services
 │       │   │   │   │   ├── PeriodService.ets
-│       │   │   │   │   └── RouteService.ets
 │       │   │   │   └── stores
 │       │   │   │       └── periodStore.ets
 │       │   │   ├── entryability
