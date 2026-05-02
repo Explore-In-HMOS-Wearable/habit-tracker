@@ -2,15 +2,207 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "module description"
+      "value": "Advanced Wearable Habit Tracker for HarmonyOS"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "description"
+      "value": "Track daily rituals and growth habits with haptic coaching and auto-detection."
     },
     {
       "name": "EntryAbility_label",
-      "value": "label"
+      "value": "Habit Tracker"
+    },
+    {
+      "name": "morning_ritual",
+      "value": "Morning Ritual"
+    },
+    {
+      "name": "afternoon_ritual",
+      "value": "Afternoon Ritual"
+    },
+    {
+      "name": "evening_ritual",
+      "value": "Evening Ritual"
+    },
+    {
+      "name": "all_completed",
+      "value": "✅ All periods completed!"
+    },
+    {
+      "name": "motivation_text",
+      "value": "Close all the rituals! 💪"
+    },
+    {
+      "name": "app_title",
+      "value": "Habit Tracker"
+    },
+    {
+      "name": "syncing_habits",
+      "value": "Syncing Habits..."
+    },
+    {
+      "name": "add_ritual_title",
+      "value": "Add Ritual"
+    },
+    {
+      "name": "label_period",
+      "value": "Period"
+    },
+    {
+      "name": "label_title",
+      "value": "Title"
+    },
+    {
+      "name": "label_duration",
+      "value": "Duration"
+    },
+    {
+      "name": "label_type",
+      "value": "Type"
+    },
+    {
+      "name": "label_seconds",
+      "value": "Seconds"
+    },
+    {
+      "name": "label_step_count",
+      "value": "Step Count"
+    },
+    {
+      "name": "label_steps",
+      "value": "steps"
+    },
+    {
+      "name": "type_normal",
+      "value": "Normal"
+    },
+    {
+      "name": "type_breath",
+      "value": "Breath"
+    },
+    {
+      "name": "type_steps",
+      "value": "Steps"
+    },
+    {
+      "name": "btn_save",
+      "value": "Save"
+    },
+    {
+      "name": "btn_saving",
+      "value": "Saving..."
+    },
+    {
+      "name": "btn_cancel",
+      "value": "Cancel"
+    },
+    {
+      "name": "btn_skip",
+      "value": "Skip"
+    },
+    {
+      "name": "btn_done",
+      "value": "Done"
+    },
+    {
+      "name": "btn_finish",
+      "value": "Finish"
+    },
+    {
+      "name": "btn_start",
+      "value": "Start"
+    },
+    {
+      "name": "btn_pause",
+      "value": "Pause"
+    },
+    {
+      "name": "rituals_complete",
+      "value": "Rituals Complete!"
+    },
+    {
+      "name": "excellent_progress",
+      "value": "Excellent progress today."
+    },
+    {
+      "name": "breathing_active",
+      "value": "Breathe..."
+    },
+    {
+      "name": "breathing_ready",
+      "value": "Ready?"
+    },
+    {
+      "name": "tracking_steps",
+      "value": "Tracking steps automatically..."
+    },
+    {
+      "name": "morning_time",
+      "value": "06:00 - 09:00"
+    },
+    {
+      "name": "afternoon_time",
+      "value": "12:00 - 14:00"
+    },
+    {
+      "name": "evening_time",
+      "value": "20:00 - 22:00"
+    },
+    {
+      "name": "default_drink_water",
+      "value": "Drink water"
+    },
+    {
+      "name": "default_drink_water_time",
+      "value": "1 min"
+    },
+    {
+      "name": "default_morning_breath",
+      "value": "Morning Breath"
+    },
+    {
+      "name": "default_morning_breath_time",
+      "value": "3 min"
+    },
+    {
+      "name": "default_quick_walk",
+      "value": "Quick Walk"
+    },
+    {
+      "name": "default_quick_walk_time",
+      "value": "500 steps"
+    },
+    {
+      "name": "default_short_walk",
+      "value": "Short walk"
+    },
+    {
+      "name": "default_short_walk_time",
+      "value": "1000 steps"
+    },
+    {
+      "name": "default_healthy_lunch",
+      "value": "Healthy lunch"
+    },
+    {
+      "name": "default_healthy_lunch_time",
+      "value": "30 min"
+    },
+    {
+      "name": "default_read_book",
+      "value": "Read a book"
+    },
+    {
+      "name": "default_read_book_time",
+      "value": "20 min"
+    },
+    {
+      "name": "default_evening_meditate",
+      "value": "Evening Meditate"
+    },
+    {
+      "name": "default_evening_meditate_time",
+      "value": "10 min"
     }
   ]
 }

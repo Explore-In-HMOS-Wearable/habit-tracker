@@ -1,268 +1,173 @@
 import { PeriodModel } from '../core/models/PeriodModel';
 import { PeriodService } from '../core/services/PeriodService';
-import display from '@ohos.display';
-
-class PeriodDataSource implements IDataSource {
-  private data: PeriodModel[] = [];
-  private listeners: DataChangeListener[] = [];
-
-  constructor(data: PeriodModel[]) {
-    this.data = data || [];
-  }
-
-  totalCount(): number {
-    return this.data.length;
-  }
-
-  getData(index: number): PeriodModel {
-    return this.data[index];
-  }
-
-  registerDataChangeListener(listener: DataChangeListener): void {
-    if (this.listeners.indexOf(listener) < 0) {
-      this.listeners.push(listener);
-    }
-  }
-
-  unregisterDataChangeListener(listener: DataChangeListener): void {
-    const pos = this.listeners.indexOf(listener);
-    if (pos >= 0) {
-      this.listeners.splice(pos, 1);
-    }
-  }
-
-  notifyDataReload(): void {
-    this.listeners.forEach(listener => listener.onDataReloaded());
-  }
-
-  notifyDataAdd(index: number): void {
-    this.listeners.forEach(listener => listener.onDataAdd(index));
-  }
-
-  notifyDataChange(index: number): void {
-    this.listeners.forEach(listener => listener.onDataChange(index));
-  }
-
-  notifyDataDelete(index: number): void {
-    this.listeners.forEach(listener => listener.onDataDelete(index));
-  }
-}
+import { hilog } from '@kit.PerformanceAnalysisKit';
 
 @Component
 export struct HomePage {
   @Consume('pageStack') pageStack: NavPathStack;
-  private controller = PeriodService.instance;
-  @State periodsProgress: number[] = [0, 0, 0];
-  private periodsDataSource: PeriodDataSource = new PeriodDataSource(this.controller.periods);
-  @State screenWidth: number = 0;
-  @State screenHeight: number = 0;
+  private controller: PeriodService = PeriodService.instance;
   private morningGradientColor: LinearGradient = new LinearGradient([
-    { color: Color.Yellow, offset: 0.5 },
-    { color: Color.Orange, offset: 1.0 }
+    { color: $r('app.color.morning_gradient_start'), offset: 0.0 },
+    { color: $r('app.color.morning_color'), offset: 1.0 }
   ]);
   private afternoonGradientColor: LinearGradient = new LinearGradient([
-    { color: Color.Pink, offset: 0.5 },
-    { color: Color.Red, offset: 1.0 }
+    { color: $r('app.color.afternoon_gradient_start'), offset: 0.0 },
+    { color: $r('app.color.afternoon_color'), offset: 1.0 }
   ]);
   private eveningGradientColor: LinearGradient = new LinearGradient([
-    { color: Color.Blue, offset: 0.5 },
-    { color: Color.Black, offset: 1.0 }
+    { color: $r('app.color.evening_gradient_start'), offset: 0.0 },
+    { color: $r('app.color.evening_color'), offset: 1.0 }
   ]);
 
   async aboutToAppear() {
-    this.updateDataSource();
-    this.updateProgress();
+    hilog.info(0x0001, 'HomePage', 'aboutToAppear');
     try {
-      const defaultDisplay = await display.getDefaultDisplaySync();
-      this.screenWidth = defaultDisplay.width;
-      this.screenHeight = defaultDisplay.height;
+      setTimeout(() => {
+        if (!this.controller.isLoaded) {
+          hilog.warn(0x0001, 'HomePage', 'Loading timed out, forcing display');
+          this.controller.isLoaded = true;
+        }
+      }, 3000);
+      await this.controller.initializeData();
     } catch (err) {
-      console.error('Failed to get display info:', err);
+      hilog.error(0x0001, 'HomePage', 'Error in aboutToAppear: %{public}s', JSON.stringify(err));
     }
   }
 
-  onPageShow() {
-    this.updateDataSource();
-    this.updateProgress();
+  private getPeriod(index: number): PeriodModel | undefined {
+    return this.controller.periods[index];
   }
 
-  private updateDataSource() {
-    this.periodsDataSource = new PeriodDataSource(this.controller.periods);
-  }
-
-  private updateProgress() {
-    this.periodsProgress = [
-      this.calculateProgress(0),
-      this.calculateProgress(1),
-      this.calculateProgress(2)
-    ];
-  }
-
-  private calculateProgress(index: number): number {
+  private getProgress(index: number): number {
     const period = this.controller.periods[index];
-    if (!period || period.rituals.length === 0) {
-      return 0;
-    }
-    const completedCount = period.rituals.filter(r => r.completed).length;
-    return Math.round((completedCount / period.rituals.length) * 100);
-  }
-
-  private baseSize(): number {
-    if (this.screenWidth === 0 || this.screenHeight === 0) {
-      return 200;
-    }
-    return Math.min(this.screenWidth, this.screenHeight);
-  }
-
-  private progressSize(): number {
-    return this.baseSize() * 0.16;
-  }
-
-  private progressStroke(): number {
-    return this.baseSize() * 0.025;
-  }
-
-  private fontSmall(): number {
-    return this.baseSize() * 0.04;
-  }
-
-  private fontMedium(): number {
-    return this.baseSize() * 0.05;
+    return period ? period.progress : 0;
   }
 
   @Builder
-  private buildHeader() {
+  private buildProgressRing(index: number, gradient: LinearGradient, label: string) {
     Column() {
-      if (this.periodsProgress.every(p => p === 100)) {
-        Row() {
-          Text('✅ All periods completed!')
-            .fontSize(this.fontMedium())
-            .fontWeight(FontWeight.Bold)
-            .fontColor(Color.Green)
-            .padding({ top: 20, bottom: 6 });
-        }
-        .justifyContent(FlexAlign.Center)
-        .margin({ bottom: 6 });
-      }
-    }
-    .margin({ bottom: 8 });
-  }
+      Stack() {
+        Progress({ value: this.getProgress(index), total: 100, type: ProgressType.Ring })
+          .width(50)
+          .height(50)
+          .style({ strokeWidth: 6 })
+          .color(gradient)
+          .backgroundColor($r('app.color.dark_bg'))
 
-  @Builder
-  private buildProgressRings() {
-    Column() {
-      Column() {
-        Progress({ value: this.periodsProgress[0], total: 100, type: ProgressType.Ring })
-          .width(this.progressSize())
-          .height(this.progressSize())
-          .style({ strokeWidth: this.progressStroke() })
-          .color(this.morningGradientColor)
-          .backgroundColor('#F0F0F0')
-        Text(`Morning ${this.periodsProgress[0]}%`)
-          .fontSize(this.fontSmall())
-          .margin({ top: 2 })
-          .fontColor('#000')
-      }
-      .width('100%')
-      .alignItems(HorizontalAlign.Center)
-
-      Row() {
-        Column() {
-          Progress({ value: this.periodsProgress[1], total: 100, type: ProgressType.Ring })
-            .width(this.progressSize())
-            .height(this.progressSize())
-            .style({ strokeWidth: this.progressStroke() })
-            .color(this.afternoonGradientColor)
-            .backgroundColor('#F0F0F0')
-          Text(`Afternoon ${this.periodsProgress[1]}%`)
-            .fontSize(this.fontSmall())
-            .margin({ top: 2 })
-            .fontColor('#000')
-        }
-        .width('50%')
-        .alignItems(HorizontalAlign.Center)
-
-        Column() {
-          Progress({ value: this.periodsProgress[2], total: 100, type: ProgressType.Ring })
-            .width(this.progressSize())
-            .height(this.progressSize())
-            .style({ strokeWidth: this.progressStroke() })
-            .color(this.eveningGradientColor)
-            .backgroundColor('#F0F0F0')
-          Text(`Evening ${this.periodsProgress[2]}%`)
-            .fontSize(this.fontSmall())
-            .margin({ top: 2 })
-            .fontColor('#000')
-        }
-        .width('50%')
-        .alignItems(HorizontalAlign.Center)
-      }
-      .margin({ bottom: 8 })
-
-      Row() {
-        Text('Lets close all the rituals of the day! 💪')
-          .fontSize(this.fontMedium())
-          .fontColor('#000')
+        Text(`${this.getProgress(index)}%`)
+          .fontSize(14)
+          .fontColor(Color.White)
           .fontWeight(FontWeight.Bold)
       }
-      .justifyContent(FlexAlign.Center)
+      .onClick(() => {
+        const period = this.getPeriod(index);
+        if (period) {
+          this.pageStack.pushPathByName('Period', period.id);
+        }
+      })
+
+      Text(label)
+        .fontSize(14)
+        .margin({ top: 4 })
+        .fontColor($r('app.color.text_tertiary'))
     }
-    .margin({ bottom: 8 })
   }
 
   @Builder
-  private buildPeriodsList() {
-    Column() {
-      LazyForEach(
-        this.periodsDataSource,
-        (period: PeriodModel) => {
-          Row() {
-            Column() {
-              Text(period.title)
-                .fontSize(this.fontSmall())
-                .fontColor('#FFF');
-              Text(period.time)
-                .fontSize(this.fontMedium())
-                .fontColor('#FFF');
-            }
-            .height('100%');
-          }
-          .width('100%')
-          .height(this.baseSize() * 0.14)
-          .margin(3)
-          .padding(6)
-          .borderRadius(10)
-          .backgroundColor(period.color)
-          .onClick(() => {
-            this.pageStack.pushPathByName('Period', period.id);
-          });
-        },
-        (period: PeriodModel) => period.id.toString()
-      );
+  private buildPeriodCard(period: PeriodModel) {
+    Row() {
+      Column() {
+        Text(period.title)
+          .fontSize(16)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(Color.White)
+        Text(period.time)
+          .fontSize(13)
+          .fontColor($r('app.color.text_dim'))
+          .margin({ top: 2 })
+      }
+      .alignItems(HorizontalAlign.Start)
+      .layoutWeight(1)
+
+      Circle({ width: 12, height: 12 })
+        .fill(period.completed ? Color.Green : Color.Gray)
     }
+    .width('92%')
+    .padding(18)
+    .margin({ bottom: 12 })
+    .borderRadius(24)
+    .backgroundColor($r('app.color.card_bg'))
+    .onClick(() => {
+      this.pageStack.pushPathByName('Period', period.id);
+    })
   }
 
   build() {
     NavDestination() {
-      Scroll() {
-        Column() {
-          this.buildHeader();
-          this.buildProgressRings();
-          this.buildPeriodsList();
+      Stack() {
+        if (!this.controller.isLoaded) {
+          Column() {
+            LoadingProgress().width(50).height(50).color(Color.White)
+            Text($r('app.string.syncing_habits'))
+              .fontColor($r('app.color.text_muted'))
+              .margin({ top: 10 })
+          }
+          .width('100%')
+          .height('100%')
+          .justifyContent(FlexAlign.Center)
+          .backgroundColor(Color.Black)
+        } else {
+          Scroll() {
+            Column() {
+              Blank().height(30)
+
+              Column() {
+                Text($r('app.string.app_title'))
+                  .fontSize(20)
+                  .fontColor($r('app.color.text_dim'))
+                  .margin({ bottom: 10 })
+
+                Column() {
+                  this.buildProgressRing(0, this.morningGradientColor, 'Morning')
+                }
+
+                Row() {
+                  this.buildProgressRing(1, this.afternoonGradientColor, 'Afternoon')
+                  this.buildProgressRing(2, this.eveningGradientColor, 'Evening')
+                }
+                .width('100%')
+                .justifyContent(FlexAlign.SpaceEvenly)
+                .margin({ bottom: 25 })
+              }
+
+              ForEach(this.controller.periods, (period: PeriodModel) => {
+                this.buildPeriodCard(period)
+              }, (period: PeriodModel) => period.id.toString())
+
+              Button('+')
+                .onClick(() => {
+                  this.pageStack.pushPathByName('AddHabit', null);
+                })
+                .width(50)
+                .height(50)
+                .borderRadius(25)
+                .backgroundColor($r('app.color.btn_dark'))
+                .fontColor(Color.White)
+                .fontSize(24)
+                .margin({ top: 8 })
+
+              Blank().height(60)
+            }
+            .width('100%')
+          }
+          .width('100%')
+          .height('100%')
+          .backgroundColor(Color.Black)
+          .scrollBar(BarState.Off)
         }
       }
-      .scrollable(ScrollDirection.Vertical)
-      .scrollBar(BarState.Off)
-      .width('100%')
-      .height('100%')
-      .backgroundColor('#FFF')
-      .padding({
-        top: 8,
-        bottom: 16,
-        left: 12,
-        right: 12
-      });
-    }.onReady((ctx: NavDestinationContext) => {
+    }
+    .onReady((ctx: NavDestinationContext) => {
       this.pageStack = ctx.pathStack;
     })
     .hideBackButton(true)

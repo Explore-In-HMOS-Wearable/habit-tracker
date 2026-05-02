@@ -1,4 +1,4 @@
-import { RitualModel } from './RitualModel';
+import { HabitModel } from './HabitModel';
 
 @ObservedV2
 export class PeriodModel {
@@ -6,12 +6,14 @@ export class PeriodModel {
   @Trace title: string;
   @Trace time: string;
   @Trace color: string;
-  @Trace rituals: RitualModel[];
+  @Trace habits: HabitModel[];
 
   get progress(): number {
-    if (this.rituals.length === 0) { return 0 };
-    const completedCount = this.rituals.filter(r => r.completed).length;
-    return Math.round((completedCount / this.rituals.length) * 100);
+    if (this.habits.length === 0) {
+      return 0;
+    }
+    const completedCount = this.habits.filter(h => h.completed).length;
+    return Math.round((completedCount / this.habits.length) * 100);
   }
 
   get completed(): boolean {
@@ -23,12 +25,12 @@ export class PeriodModel {
     title: string,
     time: string,
     color: string,
-    rituals: RitualModel[] = []
+    habits: HabitModel[] = []
   ) {
     this.id = id;
     this.title = title;
     this.time = time;
     this.color = color;
-    this.rituals = rituals;
+    this.habits = habits;
   }
 }

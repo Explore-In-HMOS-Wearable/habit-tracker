@@ -1,44 +1,66 @@
-import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
+import {
+  AbilityConstant,
+  ConfigurationConstant,
+  UIAbility,
+  Want,
+  abilityAccessCtrl,
+  Permissions
+} from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
+import { SensorTrackingService } from '../core/services/SensorTrackingService';
+import { DatabaseService } from '../core/services/DatabaseService';
+import GlobalContext from '../core/utils/GlobalContext';
 
 const DOMAIN = 0x0000;
 
 export default class EntryAbility extends UIAbility {
-  onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+  async onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): Promise<void> {
     this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onCreate');
+    hilog.info(DOMAIN, 'HabitTracker', 'Ability onCreate');
+    GlobalContext.getInstance().saveContext(this.context);
+
+    await DatabaseService.init(this.context);
+    this.requestPermissions();
+  }
+
+  private requestPermissions(): void {
+    const atManager = abilityAccessCtrl.createAtManager();
+    const permissions: Array<Permissions> = ['ohos.permission.ACTIVITY_MOTION'];
+
+    atManager.requestPermissionsFromUser(this.context, permissions).then((data) => {
+      hilog.info(DOMAIN, 'HabitTracker', 'Permission request success: %{public}s', JSON.stringify(data));
+
+      SensorTrackingService.instance.startTracking();
+    }).catch((err: Error) => {
+      hilog.error(DOMAIN, 'HabitTracker', 'Permission request failed: %{public}s', JSON.stringify(err));
+    });
   }
 
   onDestroy(): void {
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onDestroy');
+    hilog.info(DOMAIN, 'HabitTracker', 'Ability onDestroy');
+    SensorTrackingService.instance.stopTracking();
   }
 
   onWindowStageCreate(windowStage: window.WindowStage): void {
-    // Main window is created, set main page for this ability
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
-
     windowStage.loadContent('pages/Index', (err) => {
       if (err.code) {
-        hilog.error(DOMAIN, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
+        hilog.error(DOMAIN, 'HabitTracker', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
         return;
       }
-      hilog.info(DOMAIN, 'testTag', 'Succeeded in loading the content.');
+      hilog.info(DOMAIN, 'HabitTracker', 'Succeeded in loading the content.');
     });
   }
 
   onWindowStageDestroy(): void {
-    // Main window is destroyed, release UI related resources
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageDestroy');
+    hilog.info(DOMAIN, 'HabitTracker', 'Ability onWindowStageDestroy');
   }
 
   onForeground(): void {
-    // Ability has brought to foreground
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onForeground');
+    hilog.info(DOMAIN, 'HabitTracker', 'Ability onForeground');
   }
 
   onBackground(): void {
-    // Ability has back to background
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onBackground');
+    hilog.info(DOMAIN, 'HabitTracker', 'Ability onBackground');
   }
 }
